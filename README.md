@@ -2,7 +2,7 @@
 Jogo da velha implementado em Linguagem C usando a OpenGL freeGlut. 
 Apçicação para fins de estudo da disciplina de Modelagem 3D ministrada pelo professor Will Ricardo na PUC Minas, unidade de Poços de Caldas.
 
-![Jogo da Velha](https://ibb.co/fYycL65)
+![Jogo da Velha](https://i.ibb.co/1fPSjy5/JOGODAVELHA.png)
 # OBJETIVO
 
 Implementar o jogo da velha em Open GL cujas interações do usuário deverão ocorrer através da utilização do mouse. Faça uso da implementação de referência de manipulação do mouse do material 19/08 - Introdução ao OpenGL e Aplicações 2D .
