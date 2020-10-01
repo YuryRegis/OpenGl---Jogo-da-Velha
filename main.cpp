@@ -3,6 +3,7 @@
 #include<stdio.h>
 #include<iostream>
 #include<math.h>
+#include<time.h>
 
 
 GLfloat escala = 1;
@@ -16,7 +17,7 @@ static int val = 0;
 static int menuPrincipal;
 static int subMenu;
 //static int janela;
-// Coodenadas globais X, Y e �ngulo teta (T)
+// Coodenadas globais X, Y e ângulo teta (T)
 float X, Y, T = 0.0;
 
 
@@ -31,10 +32,13 @@ no *lista = (no *) malloc(sizeof(no));
 void iniciaLista(no *lista);
 void exibeLista(no *lista);
 void adicionaNo(no *lista);
+void resetVelha(no *lista);
 int verificaVelha(no *lista);
 int retornaValor(no *lista, int pos);
 int verificaPos(no *lista, int pos, int jog);
 
+
+void fimDeJogo(void);
 
 void DesenhaTexto(void *font, char *string)
 {
@@ -55,6 +59,7 @@ void DesenhaLinha(float iX, float iY, float fX, float fY)
 
 void tabuleiro(void)
 {
+
     glBegin(GL_LINES);
       glColor3f(0,0,0);
       // Linhas Horizontais
@@ -113,7 +118,7 @@ void apagaTexto(void)
     glFlush();
 }
 
-//VERIFICA SE TRES POSICOES S�O IGUAIS E N�O-NULAS
+//VERIFICA SE TRES POSICOES SÃO IGUAIS E NÃO-NULAS
 int verificaGanhador(int posA, int posB, int posC)
 {
     posA = retornaValor(lista, posA);
@@ -132,9 +137,11 @@ int verificaGanhador(int posA, int posB, int posC)
 }
 
 void desenha(void) {
-    //glClear(GL_COLOR_BUFFER_BIT);
     if(gameOver)
-        return;
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+        fimDeJogo();
+    }
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -146,7 +153,6 @@ void desenha(void) {
 
     //DESENHA TABULEIRO
     tabuleiro();
-
 
     printf("\nestadoClick --> %d\n", estadoClick);
     printf("\nJOGADOR %d\n", jogador);
@@ -244,7 +250,19 @@ void desenha(void) {
     //glFlush();
 }
 
-// INTERA��O COM MOUSE
+
+void resetGame(void)
+{
+    val         = 0;
+    pos         = 1;
+    jogador     = 1;
+    gameOver    = false;
+    estadoClick = false;
+    printf("\nGAMEOVER %d\nCLICK %d\n",gameOver,estadoClick);
+}
+
+
+// INTERAÇÃO COM MOUSE
 void mouse(int button, int state, int mouseX, int mouseY)
 {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
@@ -252,6 +270,29 @@ void mouse(int button, int state, int mouseX, int mouseY)
         estadoClick = true;
         printf("\nX --> %d", mouseX);
         printf("\nY --> %d\n", mouseY);
+
+        if(gameOver)
+        {
+            // CLICOU NO BOTÃO SIM
+            if(mouseX>200 && mouseX<330)
+                if(mouseY>350 && mouseY<400)
+            {
+                resetGame();
+                resetVelha(lista);
+                exibeLista(lista);
+                glutDestroyWindow(popup);
+                glClear(GL_COLOR_BUFFER_BIT);
+                glutDisplayFunc(desenha);
+                return;
+            }
+            // CLICOU NO BOTÃO NÃO
+            if(mouseX>465 && mouseX<600)
+                if(mouseY>350 && mouseY<400)
+                {
+                    glutDestroyWindow(janela);
+                    exit(0);
+                }
+        }
 
         //VERIFICA LINHA 1
         if(mouseY < 225)
@@ -334,6 +375,60 @@ void mouse(int button, int state, int mouseX, int mouseY)
     glutPostRedisplay();
 }
 
+void displayGameOver(void)
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(-ortho,ortho,-ortho,ortho);
+
+    glColor3f(0,0,0);
+    glRasterPos2f(-0.7,0.7);
+    DesenhaTexto(GLUT_BITMAP_9_BY_15,"GAME OVER");
+    glRasterPos2f(-1.8,0);
+    DesenhaTexto(GLUT_BITMAP_9_BY_15,"DESEJA REINICIAR O JOGO ?");
+
+    //BOTÃO SIM
+    glColor3f(0,1,0);
+     glBegin(GL_POLYGON);
+        glVertex2f( -3.0f, -2.0f );
+        glVertex2f( -3.0f, -1.0f );
+        glVertex2f( -1.0f, -1.0f );
+        glVertex2f( -1.0f, -2.0f );
+    glEnd();
+    glColor3f(0,0,0);
+    glRasterPos2f(-2.2f,-1.6f);
+    DesenhaTexto(GLUT_BITMAP_9_BY_15,"SIM");
+
+    //BOTÃO NÃO
+    glColor3f(1,0,0);
+    glBegin(GL_POLYGON);
+        glVertex2f( 3.0f, -2.0f );
+        glVertex2f( 3.0f, -1.0f );
+        glVertex2f( 1.0f, -1.0f );
+        glVertex2f( 1.0f, -2.0f );
+    glEnd();
+    glColor3f(1,1,1);
+    glRasterPos2f(1.8f,-1.6f);
+    DesenhaTexto(GLUT_BITMAP_9_BY_15,"NAO");
+
+    glPopMatrix();
+    glFlush();
+}
+
+
+void fimDeJogo(void)
+{
+    Sleep(1500);
+    //glutInitWindowSize(800,600);
+    //glutInitWindowPosition(500,200);
+    //popup = glutCreateWindow("JOGO DA VELHA v0.1");
+    popup = glutCreateSubWindow(janela, 0, 0, 800,600);
+    glutMouseFunc(mouse);
+    glClearColor(1,1,1,0);
+    glutDisplayFunc(displayGameOver);
+}
+
 void displayAviso(void)
 {
     glMatrixMode(GL_PROJECTION);
@@ -390,7 +485,7 @@ void criaMenu(void)
     glutAddSubMenu("JOGO", subMenu);
     glutAddMenuEntry("SAIR",0);
 
-    //PERMITIR INTERA��O DO MENU COM MOUSE
+    //PERMITIR INTERAÇÃO DO MENU COM MOUSE
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
@@ -407,6 +502,7 @@ int main(int argc, char* argv[])
     janela = glutCreateWindow("JOGO DA VELHA");
     criaMenu();
     glutDisplayFunc(desenha);
+    glutSetOption( GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
     glutMouseFunc(mouse);
     glClearColor(1,1,1,0);
     glutMainLoop();
@@ -443,7 +539,21 @@ void adicionaNo(no *lista)
     noTemp->proximo = novoNo;
 }
 
-//VERIFICA SE TODOS OS VALORES S�O DIFERENTE DE ZERO
+//ZERA TODAS AS POSÇÕES (RESET)
+void resetVelha(no *lista)
+{
+    lista->valor = 0;
+    no *aux      = lista->proximo;
+
+    while(aux!=NULL)
+    {
+         aux->valor = 0;
+         aux = aux->proximo;
+    }
+    free(aux);
+}
+
+//VERIFICA SE TODOS OS VALORES SÃO DIFERENTE DE ZERO
 int verificaVelha(no *lista)
 {
     if (lista->valor == 0)
@@ -463,7 +573,7 @@ int verificaVelha(no *lista)
     return true;
 }
 
-//RETORNA VALOR POR POSI��O
+//RETORNA VALOR POR POSIÇÃO
 int retornaValor(no *lista, int pos)
 {
     if(pos==1)
@@ -481,7 +591,7 @@ int retornaValor(no *lista, int pos)
     return anterior->valor;
 }
 
-//VERIFICA SE JA TEMOS REGISTRO DE ALGUM JOGADOR NESSA POSI��O
+//VERIFICA SE JA TEMOS REGISTRO DE ALGUM JOGADOR NESSA POSIÇÃO
 int verificaPos(no *lista, int pos, int jog)
 {
     int cont = 1;
